@@ -1,8 +1,9 @@
-import Image from "next/image";
+import ChatRoom from '@/components/ChatRoom';
 
 export default function Home() {
   return (
-    <div>
-    </div>
+    <main>
+      <ChatRoom roomId="main" />
+    </main>
   );
 }
