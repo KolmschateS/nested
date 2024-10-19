@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const Navbar: React.FC = () => {
   return (
-    <nav className="">
+    <nav className="bg-neutral-900 sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-center h-16">
           <div className="flex items-center">
