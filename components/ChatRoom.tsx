@@ -1,22 +1,27 @@
-// ChatRoom.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import ChatFeed from "@/components/ChatFeed";
 import ChatBox from "@/components/ChatBox";
-import { getMessages } from "@/app/actions";
+import { getMessages, getMainMessage } from "@/app/actions";
 
 export default function ChatRoom({ roomId }: { roomId: string }) {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<{ id: string; content: string; createdAt: string; parentId: string | null }[]>([]);
+  const [mainMessage, setMainMessage] = useState<{ id: string; content: string; createdAt: string; parentId: string | null } | null>(null);
 
   useEffect(() => {
-    // Fetch initial messages for the room
-    getMessages(roomId).then((fetchedMessages) => {
-      setMessages(fetchedMessages);
+    // Haal het hoofdbericht op (het bericht waarop je hebt geklikt)
+    getMainMessage(roomId).then((message) => {
+      setMainMessage(message);
     });
 
-    // Set up WebSocket connection
+    // Haal de replies op
+    getMessages(roomId).then((messages) => {
+      setMessages(messages);
+    });
+
+    // WebSocket connectie opzetten
     const websocket = new WebSocket("ws://localhost:3001");
 
     websocket.onopen = () => {
@@ -56,7 +61,8 @@ export default function ChatRoom({ roomId }: { roomId: string }) {
 
   return (
     <div className="flex flex-col h-screen bg-neutral-950 text-neutral-200">
-      <ChatFeed messages={messages} />
+      {/* Geef het hoofdbericht en de berichten door aan ChatFeed */}
+      <ChatFeed messages={messages} mainMessage={mainMessage} />
       <ChatBox sendMessage={sendMessage} />
     </div>
   );
