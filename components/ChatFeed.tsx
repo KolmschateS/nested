@@ -8,11 +8,11 @@ import { getMessages } from "@/app/actions";
 
 import Link from "next/link";
 
-export default function ChatFeed() {
+export default function ChatFeed({ roomId } : { roomId: string }) {
     const [messages, setMessages] = useState([]);
 
     useEffect(() => {
-        getMessages(null).then((messages) => {
+        getMessages(roomId).then((messages) => {
             setMessages(messages);
         });
     }, []);
