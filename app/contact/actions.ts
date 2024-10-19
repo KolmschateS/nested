@@ -1,4 +1,3 @@
-// app/actions.ts
 "use server";
 
 import { z } from "zod";
@@ -6,36 +5,36 @@ import { PrismaClient } from "@prisma/client";
 import { sendEmail } from "@/utils/email";
 import dotenv from "dotenv";
 
-// Load environment variables
+// Laad omgevingsvariabelen
 dotenv.config();
 
 const prisma = new PrismaClient();
 
+// Definieer het schema voor de contactgegevens
 const contactSchema = z.object({
   email: z.string().email(),
   subject: z.string().min(1),
   message: z.string().min(10),
-  captcha: z.string().min(6).max(6),
 });
 
-export async function sendContactForm(data: unknown) {
+export async function sendContactMessage(data: unknown) {
   const parsedData = contactSchema.safeParse(data);
 
   if (!parsedData.success) {
-    return { ok: false, error: parsedData.error };
+    return { ok: false, error: parsedData.error.format() };
   }
 
   const { email, subject, message } = parsedData.data;
 
   try {
-    // Send the email using the utility function
+    // Stuur de e-mail met behulp van de utility functie
     await sendEmail({
-      to: process.env.EMAIL_TO || "your-email@example.com", // Recipient email from env
-      subject: `Contact Form: ${subject}`,
-      text: `Message from ${email}: ${message}`,
+      email: process.env.SMTP_EMAIL_TO || "s1148925@student.windesheim.nl",
+      subject: `NESTED | Contact Form: ${subject}`,
+      message: `Bericht van ${email}: ${message}`,
     });
 
-    // Save the message to the database
+    // Sla het bericht op in de database
     await prisma.contactMessage.create({
       data: {
         email,
@@ -47,6 +46,6 @@ export async function sendContactForm(data: unknown) {
     return { ok: true };
   } catch (error) {
     console.error("Error sending contact form:", error);
-    return { ok: false };
+    return { ok: false, error: "Er is een fout opgetreden bij het verzenden." };
   }
 }

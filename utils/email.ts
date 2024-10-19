@@ -1,31 +1,35 @@
-// utils/email.ts
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 
-export async function sendEmail({
-  to,
-  subject,
-  text,
-}: {
-  to: string;
+export const sendEmail = async (data: {
+  email: string;
   subject: string;
-  text: string;
-}) {
-  // Create a reusable transporter object using the default SMTP transport
-  let transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: false, // true for 465, false for other ports
+  message: string;
+}) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT || '587'), // Default to port 587 if not provided
+    secure: false, // Use TLS (for port 587)
     auth: {
-      user: process.env.SMTP_USER, // SMTP username from .env
-      pass: process.env.SMTP_PASS, // SMTP password from .env
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
     },
   });
 
-  // Send the email
-  await transporter.sendMail({
-    from: `"Your App" <${process.env.SMTP_USER}>`, // Sender address from .env
-    to, // List of recipients
-    subject, // Subject line
-    text, // Plain text body
-  });
-}
+  const mailOptions = {
+    from: process.env.EMAIL_USER, // Sender's email (your email)
+    to: process.env.EMAIL_TO, // Recipient's email
+    subject: data.subject || 'No subject provided', // Email subject from the contact form
+    text: `Message from: ${data.email}\n\n${data.message}`, // Plain text version of the message
+    html: `<p><strong>From:</strong> ${data.email}</p><p>${data.message}</p>`, // HTML version of the message
+  };
+  
+  console.log(mailOptions);
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Message sent: %s', info.messageId);
+  } catch (error) {
+    console.error('Error sending contact form:', error);
+    throw new Error('Failed to send email');
+  }
+};
