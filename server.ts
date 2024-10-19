@@ -1,3 +1,4 @@
+// server.ts
 import { Server } from "bun";
 import { PrismaClient } from '@prisma/client';
 
@@ -9,17 +10,17 @@ interface ChatMessage {
   parentId?: string | null;
 }
 
-const server = Bun.serve<{ authToken: string }>({
+const server = Bun.serve({
   fetch(req, server) {
     const success = server.upgrade(req);
     if (success) {
-      return undefined;
+      return undefined; // If successful upgrade, return undefined to indicate no further response.
     }
-    return new Response("HTTP response");
+    return new Response("HTTP response"); // Default response for non-WebSocket requests.
   },
   websocket: {
     async message(ws, message) {
-      const data = JSON.parse(message as string) as ChatMessage;
+      const data: ChatMessage = JSON.parse(message as string);
 
       switch (data.type) {
         case 'newMessage':
@@ -27,7 +28,7 @@ const server = Bun.serve<{ authToken: string }>({
             let parentMessage = null;
             if (data.parentId) {
               parentMessage = await prisma.message.findUnique({
-                where: { id: data.parentId }
+                where: { id: data.parentId },
               });
               if (!parentMessage) {
                 ws.send(JSON.stringify({ type: 'error', message: 'Parent message not found' }));
@@ -40,6 +41,7 @@ const server = Bun.serve<{ authToken: string }>({
                 parentId: parentMessage ? parentMessage.id : null,
               },
             });
+            // Publish the new message to all subscribed clients.
             server.publish('chatroom', JSON.stringify({ type: 'newMessage', message: newMessage }));
           }
           break;
@@ -53,10 +55,17 @@ const server = Bun.serve<{ authToken: string }>({
       }
     },
     open(ws) {
-      ws.subscribe('chatroom');
+      console.log('WebSocket connection opened');
+      ws.subscribe('chatroom'); // Subscribe the client to the chatroom.
+    },
+    close(ws) {
+      console.log('WebSocket connection closed');
+    },
+    error(ws, error) {
+      console.error('WebSocket error:', error);
     },
   },
-  port: 3001,
+  port: 3001, // Define the port on which the server listens.
 });
 
-console.log(`WebSocket server listening on ${server.hostname}:${server.port}`);
+console.log(`WebSocket server listening on ws://localhost:${server.port}`);
