@@ -15,7 +15,8 @@ export async function sendMessage(content: string, parentId: string | null) {
   return prisma.message.create({
     data: {
       content,
-      parentId,
+      parentId: parentId || null, // Use null for top-level messages
     },
   });
 }
+

@@ -11,7 +11,7 @@ model Message {
   id        String   @id @default(cuid())
   content   String
   createdAt DateTime @default(now())
-  parentId  String?
-  parent    Message? @relation("Replies", fields: [parentId], references: [id])
+  parentId  String?   // Make parentId optional (nullable)
+  parent    Message?  @relation("Replies", fields: [parentId], references: [id])
   replies   Message[] @relation("Replies")
 }

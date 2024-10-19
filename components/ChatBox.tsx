@@ -4,10 +4,10 @@ import { useState } from "react";
 
 import { sendMessage } from "@/app/actions";
 
-export default function ChatBox({ roomId } : { roomId: string }) {
+export default function ChatBox({ roomId } : { roomId: string | null }) {
     const [newMessage, setNewMessage] = useState('');
 
-    function handleSendMessage(e) {
+    function handleSendMessage(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         sendMessage(newMessage, roomId).then(() => {
             setNewMessage('');
